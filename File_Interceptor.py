@@ -11,8 +11,8 @@ seq_list = []
 
 def get_argurments():
     parse = argparse.ArgumentParser()
-    parse.add_argument("-f", "--filetype", dest="filetype", help="Press -h for Help.")
-    parse.add_argument("-u", "--url", dest="url", help="Press -h for Help." )
+    parse.add_argument("-f", "--filetype", dest="filetype", help="Filetype of the Original Download")
+    parse.add_argument("-u", "--url", dest="url", help="Download Link for Alternative File" )
     args = parse.parse_args()
     return args
 
