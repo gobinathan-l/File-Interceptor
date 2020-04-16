@@ -43,7 +43,7 @@ def process_packets(packet):
     if scapy_packet.haslayer(scapy.Raw):          # Checking for Raw Layer which contains the useful Data.
         if scapy_packet.haslayer(scapy.TCP):
             if scapy_packet[scapy.TCP].dport == 80:
-                if args.filetype in scapy_packet[scapy.Raw].load:
+                if args.filetype in scapy_packet[scapy.Raw].load: #Bug Fix: Replace this line with [if args.filetype in scapy_packet[scapy.Raw].load and "replacement file server IP or Domain" not in scapy_packet[scapy.Raw].load: ]
                     print(colored("[+] File Request", "yellow"))
                     load = scapy_packet[scapy.Raw].load
                     print(colored("[+] Request >> ", "green") + load)
